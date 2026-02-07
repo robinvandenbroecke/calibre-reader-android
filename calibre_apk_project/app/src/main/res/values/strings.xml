@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Calibre Reader</string>
+    <string name="calibre_url">http://100.112.100.14:7081/</string>
+    
+    <!-- Dialog strings -->
+    <string name="login_title">Calibre Login</string>
+    <string name="login_message">Enter your Calibre credentials</string>
+    <string name="username_hint">Username</string>
+    <string name="password_hint">Password</string>
+    <string name="remember_credentials">Remember credentials</string>
+    <string name="login_button">Login</string>
+    <string name="cancel_button">Cancel</string>
+    
+    <!-- Auth dialog strings -->
+    <string name="auth_required">Authentication Required</string>
+    <string name="auth_message">Calibre requires authentication\nRealm: %1$s\nHost: %2$s</string>
+    <string name="remember_session">Remember for this session</string>
+    
+    <!-- Error messages -->
+    <string name="error_loading">Error loading page</string>
+    <string name="error_auth_failed">Authentication failed. Please check your credentials.</string>
+    <string name="error_connect">Cannot connect to Calibre server. Please check your network.</string>
+    <string name="error_host_lookup">Server not found. Please check the URL.</string>
+    <string name="retry_button">Retry</string>
+    
+    <!-- Toast messages -->
+    <string name="toast_enter_credentials">Please enter both username and password</string>
+    <string name="toast_auth_cancelled">Authentication cancelled</string>
+    
+    <!-- Loading messages -->
+    <string name="loading_calibre">Loading your Calibre library...</string>
+</resources>

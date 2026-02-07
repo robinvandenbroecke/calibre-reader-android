@@ -1,0 +1,108 @@
+name: Build Calibre Reader APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      debug:
+        description: 'Enable debug logging'
+        required: false
+        default: 'false'
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+    
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+      with:
+        cmdline-tools-version: 'latest'
+        build-tools-version: '34.0.0'
+        platform-version: '34'
+        ndk-version: '25.2.9519653'
+        cmake-version: '3.22.1'
+        emulator: false
+    
+    - name: Configure Android environment
+      run: |
+        echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+        echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+        echo "PATH=$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH" >> $GITHUB_ENV
+        
+        # Accept licenses
+        yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses || true
+        
+        # List installed components
+        $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --list
+    
+    - name: Make gradlew executable
+      run: |
+        cd calibre_apk_project
+        chmod +x gradlew
+        ls -la gradlew
+        ./gradlew --version
+    
+    - name: Build debug APK
+      run: |
+        cd calibre_apk_project
+        ./gradlew assembleDebug --no-daemon --stacktrace --info
+    
+    - name: Check APK file
+      run: |
+        cd calibre_apk_project
+        if [ -f "app/build/outputs/apk/debug/app-debug.apk" ]; then
+          echo "✅ APK generated successfully!"
+          ls -lh app/build/outputs/apk/debug/app-debug.apk
+          file app/build/outputs/apk/debug/app-debug.apk
+        else
+          echo "❌ APK not found!"
+          find . -name "*.apk" -type f | head -10
+          exit 1
+        fi
+    
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: calibre-reader-apk
+        path: calibre_apk_project/app/build/outputs/apk/debug/app-debug.apk
+        if-no-files-found: error
+        retention-days: 90
+    
+    - name: Upload build logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-logs
+        path: |
+          calibre_apk_project/app/build/reports/
+          calibre_apk_project/build/reports/
+        retention-days: 30
+    
+    - name: Create success summary
+      if: success()
+      run: |
+        echo "🎉 APK BUILD SUCCESSFUL!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Download APK:**" >> $GITHUB_STEP_SUMMARY
+        echo "1. Go to the 'Artifacts' section above" >> $GITHUB_STEP_SUMMARY
+        echo "2. Download 'calibre-reader-apk'" >> $GITHUB_STEP_SUMMARY
+        echo "3. Install on Android device" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**App Details:**" >> $GITHUB_STEP_SUMMARY
+        echo "- Package: com.calibre.reader" >> $GITHUB_STEP_SUMMARY
+        echo "- URL: http://100.112.100.14:7081/" >> $GITHUB_STEP_SUMMARY
+        echo "- Min Android: 8.0 (API 26)" >> $GITHUB_STEP_SUMMARY
